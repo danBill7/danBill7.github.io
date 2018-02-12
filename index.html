@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>billard objet new</title>
+    <style type="text/css">
+
+p{
+font-size:28px;
+font-family:"Old English Fine";
+color: rgb(220,220,220);
+text-align:center;
+
+}
+
+
+
+</style>
+  </head>
+
+  <body  style="background-color:rgb(13,150,1);">
+    <audio  src="boule2.wav" type="audio/wav">  
+      
+      <p>le navigateur n'admet pas HTML5 audio! Dommage!</p>
+    </audio>
+	<table rules="none">
+	<tr>
+	<td style="padding-top:0px;padding-left: 0px;"><canvas ></canvas></td>
+	<td style="padding-left: 8px;" >
+	
+	
+	<P>                                                                 
+<FONT FACE="Old English Five"><FONT SIZE=6>BILLARD  FRANCAIS</FONT></FONT></P>
+                               
+	
+	
+	
+	
+	<div style="font-size:20px;text-align:center;">
+	Pour lancer la boule du joueur, cliquer n'importe ou sur la table, la boule suivra la 
+	droite qui va de son centre a l'extreme pointe de la souris</br></br> Pour revenir
+	au debut du coup qui est en cours, il suffit d'enfoncer n'importe 
+	quelle touche du clavier. Nous y sommes ! 	
+	</div></td>
+	</tr>
+	</table>
+    
+
+    <script type="text/javascript">
+
+	// setup canvas
+
+var canvas = document.querySelector('canvas');
+var ctx = canvas.getContext('2d');
+
+var width = canvas.width = 700;
+var height = canvas.height = 440;
+
+
+var d=35;
+var D=0.996;
+var band=0.85;
+var vm=11.5;
+var xl=0;
+var yl=0;
+
+var clik=false;
+var touche=false;
+var debut=true;
+var volume=1;
+var volumeAct=0.0;
+var AudioContext = window.AudioContext;
+var audioCtx = new AudioContext();
+var myAudio = document.querySelector('audio');
+var source = audioCtx.createMediaElementSource(myAudio);
+var initialVol=1;
+
+
+
+
+document.onclick=cliquer;
+document.onkeydown=revenir;
+
+
+function Ball(x, y, velX, velY, type) {
+  this.x = x;
+  this.y = y;
+  this.velX = velX;
+  this.velY = velY;
+  this.type = type;
+  
+}
+
+
+Ball.prototype.draw = function() {
+
+  
+  ctx.beginPath();
+	ctx.fillStyle="rgb(40,103,20)";                
+	ctx.arc(this.x + d/20, this.y + d/20, d/2, 0, 2 * Math.PI);
+	ctx.fill();
+  
+	ctx.beginPath();
+	if (this.type==2) 
+	ctx.fillStyle = "rgb(211,23,30)";
+	else
+	ctx.fillStyle = "rgb(200,200,255)";
+	ctx.arc(this.x, this.y, d/2, 0, 2 * Math.PI);
+	ctx.fill();
+  
+	ctx.beginPath();  
+	ctx.fillStyle="rgb(255,255,255)";              
+	ctx.arc(this.x-d/7, this.y-d/7, d/20, 0,2 * Math.PI);
+	ctx.fill();
+
+	if (this.type==1)   {	
+	ctx.beginPath();
+	ctx.fillStyle="rgb(0,0,0)";             
+	ctx.arc(this.x+d/7, this.y+10, d/35, 0,2 * Math.PI);
+	ctx.fill();
+	}
+
+	}
+
+
+Ball.prototype.update = function() {
+  
+  if ((this.x + d/2) >= width) {
+    this.velX = -band*(this.velX);
+	this.x=width-d/2;
+  }
+
+  if ((this.x - d/2) <= 0) {
+    this.velX = -band*(this.velX);
+	this.x=0+d/2;
+  }
+
+  if ((this.y + d/2) >= height) {
+    this.velY = -band*(this.velY);
+	this.y = height-d/2;
+  }
+
+  if ((this.y - d/2) <= 0) {
+    this.velY = -band*(this.velY);
+	this.y=0+d/2;
+  }
+  this.velX= D * this.velX;
+  this.velY= D * this.velY;
+  this.x += this.velX;
+  this.y += this.velY;
+}
+
+Ball.prototype.collisionDetect = function() {
+  for (var j = 0; j < balls.length; j++) {
+    if (!(this === balls[j])) {
+	
+      var dx = this.x - balls[j].x;
+      var dy = this.y - balls[j].y;
+      var distance = Math.sqrt(dx * dx + dy * dy);
+
+	if (distance < d) {
+var phi=Math.atan2(this.velY,this.velX);              
+var alpha=Math.atan2(balls[j].y-this.y,balls[j].x-this.x);	  
+
+if (alpha<0)  {
+alpha=alpha + Math.PI*2;
+}
+if (alpha>Math.PI*2)  {
+alpha=alpha-Math.PI*2;
+}
+
+var gama=phi-alpha;                      
+var phi1=Math.atan2(balls[j].velY,balls[j].velX);          
+var gama1=phi1-alpha;                  
+var mb=Math.sqrt(this.velX*this.velX+this.velY*this.velY);       
+var ma=mb*Math.cos(gama);	
+var mc=mb*Math.sin(gama);
+var m1b1=Math.sqrt(balls[j].velX*balls[j].velX+balls[j].velY*balls[j].velY);
+var m1a1=m1b1*Math.cos(gama1);	
+var m1c1=m1b1*Math.sin(gama1);
+
+this.velX=m1a1*Math.cos(phi1-gama1)+mc*Math.sin(Math.PI+phi-gama);	
+this.velY=m1a1*Math.sin(phi1-gama1)-mc*Math.cos(Math.PI+phi-gama);	
+balls[j].velX=ma*Math.cos(phi-gama)+m1c1*Math.sin(Math.PI+phi1-gama1);
+balls[j].velY=ma*Math.sin(phi-gama)+m1c1*Math.cos(Math.PI+phi1-gama1);
+
+this.x=	this.x-( balls[j].x -this.x)/30;balls[j].x=balls[j].x+( balls[j].x -this.x)/30;
+this.y=	this.y-( balls[j].y -this.y)/30;balls[j].y=balls[j].y+( balls[j].y-this.y)/30;
+	  
+volumeAct=volume*(ma+m1a1)/vm*1.15;	
+bruit();	
+	  }
+    }
+  }
+}
+
+Ball.prototype.depart = function() {
+if (this.type==1)  {
+
+var xa=this.x;
+var ya=this.y;
+var	phi=Math.atan2(yl-ya,xl-xa);
+  this.velX=vm*Math.cos(phi);
+	this.velY=vm*Math.sin(phi);
+	}
+	clik=false;
+}
+
+var xm=[];
+var ym=[];
+var balls=[];
+ 
+	function loop() {
+ 
+ ctx.fillStyle = 'rgb(26,188,2)';
+
+  ctx.fillRect(0, 0, width, height); 
+
+var  n=0;
+	
+	if   (balls.length<3)  {
+n=n+1;
+	var ball = new Ball(150,150,0,0,n);
+          balls.push(ball);
+n=n+1;
+	var ball = new Ball(150,290,0,0,n);
+          balls.push(ball);
+		  
+n=n+1;
+	var ball = new Ball(550,220,0,0,n);
+          balls.push(ball);		  
+  }
+  
+ 
+
+  for (var i = 0; i < balls.length; i++) {
+   	
+		if (clik)  {
+	balls[i].depart();
+	}   
+	balls[i].update();
+	balls[i].collisionDetect();
+	balls[i].draw();
+  
+	}
+
+  requestAnimationFrame(loop);
+	}
+
+loop();
+
+
+	function cliquer(event) {
+	debut=false;
+	document.title="x:"+event.pageX+"px, y:"+Math.floor(event.pageY)+"px";
+	if (event.pageX<710&&event.pageX>10&&event.pageY<450&&event.pageY>10)		{	 
+		yl = event.pageY-10;                 
+		xl = event.pageX-10;    		 
+
+	for (var i = 0; i < balls.length; i++) {
+xm[i]=balls[i].x;
+ym[i]=balls[i].y;
+	}
+clik=true;		
+}
+	}
+
+
+// define variables
+var audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+var source;
+var songLength;
+
+
+function getData() {
+  source = audioCtx.createBufferSource();
+  request = new XMLHttpRequest();
+  request.open('GET', 'boule2.wav', true);
+  request.responseType = 'arraybuffer';
+  request.onload = function() {
+    var audioData = request.response;
+    audioCtx.decodeAudioData(audioData, function(buffer) {
+        myBuffer = buffer;
+        songLength = buffer.duration;
+        source.buffer = myBuffer;
+        source.playbackRate.value = 1;
+        
+        var nivo = audioCtx.createGain();
+	source.connect(nivo);
+	nivo.connect(audioCtx.destination);
+  nivo.gain.value =volumeAct;
+      },
+      function(e){"erreur dans le decodage du son" + e.err});
+  }
+  request.send();
+}
+
+function bruit() {
+  getData();
+  source.start(0);
+ 
+}
+	
+	
+	function revenir()   {
+	if (!debut)  {
+for (var i = 0; i < balls.length; i++) {
+balls[i].x=xm[i];
+balls[i].y=ym[i];
+balls[i].velX=0;
+balls[i].velY=0;
+}
+}
+
+}	
+
+</script>
+  </body>
+</html>
