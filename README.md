@@ -1,2 +1,2 @@
 # danBill7.github.io
-"voila une page"
+Pour voir le  jeu aller ici [billard-francais](https://danBill7.github.io).
